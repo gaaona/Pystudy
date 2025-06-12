@@ -1,45 +1,40 @@
 def find_heart():
     for i in range(N):
         for j in range(N):
-            if matrix[i][j] == "*":
-                return i+1, j
+            if matrix[i][j] == '*':
+                return i+2, j+1  # 심장 위치(머리 아래)
 
 N = int(input())
-matrix = [input() for _ in range(N)]
+matrix = [input().strip() for _ in range(N)]
 
-heart = []
+hx, hy = find_heart()
+print(hx, hy)
 
-di = [0, 0, 1]
-dj = [-1, 1, 0]
-d = -1
+# 방향: 왼팔(-x), 오른팔(+x), 허리(+y)
+arm_left = 0
+for j in range(hy-2, -1, -1):
+    if matrix[hx-1][j] == '*':
+        arm_left += 1
 
-li = [1, 1]
-lj = [-1,1]
-ld = -1
+arm_right = 0
+for j in range(hy, N):
+    if matrix[hx-1][j] == '*':
+        arm_right += 1
 
-si,sj = find_heart() # 심장을 기준으로 양 팔과 몸통 길이를 잴 거임
-print(si+1, sj+1)
+waist = 0
+y = hx
+while y < N and matrix[y][hy-1] == '*':
+    waist += 1
+    y += 1
 
-ni = nj = 0
-for _ in range(3): # 팔이랑 몸통 길이 재는 for문
-    d += 1
-    cnt = 0
-    ni, nj = si+ di[d], sj+ dj[d] # 심장 외의 첫 신체부위 좌표로 재할당
-    while 0 <= ni < N and 0 <= nj < N and matrix[ni][nj] == "*":
-        cnt += 1
-        ni, nj = ni + di[d], nj + dj[d]
+leg_left = 0
+for i in range(y, N):
+    if matrix[i][hy-2] == '*':
+        leg_left += 1
 
-        if (ni,nj) == (si,sj): # 심장을 만나면(팔 이슈 해결용)
-            break
-    print(cnt, end=' ')
+leg_right = 0
+for i in range(y, N):
+    if matrix[i][hy] == '*':
+        leg_right += 1
 
-
-ti, tj = (ni-1), nj # 엉덩이 (몸통 끝나는 부분)으로 선언
-for _ in range(2): # 다리 길이 재는 for문
-    ld += 1
-    ni, nj = ti + li[ld], tj + lj[ld] # 다리 첫 부분으로 재할당
-    cnt = 0
-    while 0 <= ni < N and 0 <= nj < N and matrix[ni][nj] == "*":
-        cnt += 1
-        ni,nj = ni + di[d], nj + dj[d]
-    print(cnt, end=' ')
+print(arm_left, arm_right, waist, leg_left, leg_right)
