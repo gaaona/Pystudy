@@ -1,12 +1,11 @@
 import sys
 import heapq
-from collections import defaultdict
 
 input = sys.stdin.readline
-INF = 10**18
+INF = float('inf')
 
-def dijkstra(start):
-    visited = [INF] * (V+3)
+def dijkstra(start, limit):
+    visited = [INF] * (V+2)
     pq = [(0, start)]
     visited[start] = 0
 
@@ -16,53 +15,54 @@ def dijkstra(start):
         if visited[node] < dist:
             continue
         
-        if routes[node]:
-            for next_node, next_dist in routes[node]:
-                if next_node == V+1 or next_node == V+2: # 더미데이터인 경우
-                    continue
-
-                new_dist = dist + next_dist
-                
-                if visited[next_node] > new_dist:
-                    visited[next_node] = new_dist
-                    heapq.heappush(pq, (new_dist, next_node))
+        for next_node, next_dist in routes[node]:
+            new_dist = dist + next_dist
+            
+            if new_dist <= limit and visited[next_node] > new_dist:
+                visited[next_node] = new_dist
+                heapq.heappush(pq, (new_dist, next_node))
 
     return visited
 
 
 V, E = map(int, input().split())
 
-routes = defaultdict(list)
+mc_dummy = 0
+sb_dummy = V+1
+
+routes = [[] for _ in range(V+2)]
 
 for _ in range(E):
     u,v,w = map(int, input().split())
     routes[u].append((v,w))
-    routes[v].append((u,w))
+    routes[v].append((u,w)) # 양방향
+
+is_house = [True] * (V+2) # 집 여부
+is_house[mc_dummy] = False
+is_house[sb_dummy] = False
 
 M, x = map(int, input().split())
 mc_list = list(map(int, input().split()))
 
+for mc in mc_list:
+    routes[mc_dummy].append((mc, 0))
+    is_house[mc] = False
+
 S, y = map(int, input().split())
 sb_list = list(map(int, input().split()))
 
-for mc in mc_list: # 모든 맥도날드에서의 최단 거리를 구하기 위한 더미 데이터
-    routes[V+1].append((mc, 0))
+for sb in sb_list:
+    routes[sb_dummy].append((sb, 0))
+    is_house[sb] = False
 
-for sb in sb_list: # 모든 스타벅스에서의 최단 거리를 구하기 위한 더미 데이터
-    routes[V+2].append((sb, 0))
-
-mc_map = dijkstra(V+1)
-sb_map = dijkstra(V+2)
+mc_map = dijkstra(mc_dummy, x)
+sb_map = dijkstra(sb_dummy, y)
 
 min_val = INF
 
 for i in range(1, V+1):
-    if i in mc_list or i in sb_list:
-        continue
-    if mc_map[i] <= x and sb_map[i] <= y:
-        cnt = mc_map[i] + sb_map[i]
-        if min_val > cnt:
-            min_val = cnt
+    if is_house[i] and mc_map[i] <= x and sb_map[i] <= y: # 집이고 x와 y보다 가까운 경우
+        min_val = min(min_val, mc_map[i] + sb_map[i])
 
 if min_val == INF:
     print(-1)
